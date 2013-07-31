@@ -1,6 +1,6 @@
 # S5
 
-TODO: Write a gem description
+Secure Sync to Amazon S3. 
 
 ## Installation
 
