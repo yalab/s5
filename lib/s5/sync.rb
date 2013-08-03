@@ -5,8 +5,12 @@ class S5::Sync
     ENV['HOME'] + '/.s5.key'
   end
 
-  def initialize(path, bucket: nil)
-    @path = path
+  def initialize(relative, basedir=nil, bucket: nil)
+    (@path, key) = if basedir
+                     [basedir + '/'  + relative, relative]
+                   else
+                     [relative, File.basename(relative)]
+                   end
     @bucket = if bucket
                 bucket
               else
@@ -17,7 +21,7 @@ class S5::Sync
     unless bucket.exists?
       bucket = s3.buckets.create(@bucket)
     end
-    @s3_object = bucket.objects[File.basename(@path)]
+    @s3_object = bucket.objects[key]
     @options = {}
   end
 

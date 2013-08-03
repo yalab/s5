@@ -51,4 +51,25 @@ class S5::SyncTest < MiniTest::Unit::TestCase
       assert_match '-s5sync', @sync.bucket
     end
   end
+
+  class RelativePathTest < self
+    include SyncTest
+    def setup
+      super
+      @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
+      @relative = 'fixtures/test.txt'
+      basedir = File.expand_path('../../', __FILE__)
+      @path = basedir + '/'  + @relative
+      FileUtils.mkdir_p File.dirname(@path)
+      File.open(@path, 'w') do |f|
+        f.write @plain
+      end
+      @sync = S5::Sync.new(@relative, basedir)
+    end
+
+    def test_object_path
+      s3_object = @sync.run
+      assert_equal @relative, s3_object.key
+    end
+  end
 end
