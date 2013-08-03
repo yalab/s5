@@ -19,7 +19,7 @@ class S5::SyncTest < MiniTest::Unit::TestCase
     assert_equal ENV['HOME'] + '/.s5.key', S5::Sync.encrypt_key_path
   end
 
-  module SyncTest
+  module SyncRunTest
     def test_sync_run
       s3_object = @sync.run
       assert_equal @plain, s3_object.read
@@ -35,7 +35,7 @@ class S5::SyncTest < MiniTest::Unit::TestCase
   end
 
   class SinglePathTest < self
-    include SyncTest
+    include SyncRunTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
@@ -53,7 +53,7 @@ class S5::SyncTest < MiniTest::Unit::TestCase
   end
 
   class RelativePathTest < self
-    include SyncTest
+    include SyncRunTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
