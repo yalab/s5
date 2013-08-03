@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class S5::SyncTest < MiniTest::Unit::TestCase
+class S5::SyncTest < MiniTest::Test
   def setup
     @encrypt_key_path = S5::Sync.encrypt_key_path
     @encrypt_key_path_backup = @encrypt_key_path + '.s5_test'
