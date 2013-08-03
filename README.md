@@ -1,6 +1,6 @@
 # S5
 
-Secure Sync to Amazon S3. 
+Secure Sync to Amazon S3(Simple Storage Service).
 
 ## Installation
 
