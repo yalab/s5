@@ -22,14 +22,14 @@ class S5::SyncTest < MiniTest::Test
 
   module SyncPutTest
     def test_sync_put
-      s3_object = @sync.put
+      s3_object = @sync.put(@path)
       assert_equal @plain, s3_object.read
     end
 
     def test_sync_put_with_encrypt
       @sync.encrypt!
       assert File.exists?(S5::Sync.encrypt_key_path)
-      s3_object = @sync.put
+      s3_object = @sync.put(@path)
       refute_equal @plain, s3_object.read
       assert_equal @plain, s3_object.read(encryption_key: File.binread(@encrypt_key_path))
     end
@@ -58,8 +58,8 @@ class S5::SyncTest < MiniTest::Test
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
       @relative = 'fixtures/test.txt'
-      basedir = File.expand_path('../../', __FILE__)
-      @path = basedir + '/'  + @relative
+      @basedir = File.expand_path('../../', __FILE__)
+      @path = @basedir + '/'  + @relative
       FileUtils.mkdir_p File.dirname(@path)
       File.open(@path, 'w') do |f|
         f.write @plain
@@ -67,7 +67,7 @@ class S5::SyncTest < MiniTest::Test
     end
 
     def test_object_path
-      s3_object = @sync.put
+      s3_object = @sync.put(@relative, @basedir)
       assert_equal @relative, s3_object.key
     end
   end
