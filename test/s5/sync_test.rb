@@ -7,13 +7,15 @@ class S5::SyncTest < MiniTest::Test
     if File.exists?(@encrypt_key_path)
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
-    @sync ||= S5::Sync.new(bucket_name: "#{ENV['USER']}-s5-test")
+    @bucket_name = "#{ENV['USER']}-s5-test"
+    @sync ||= S5::Sync.new(bucket_name: @bucket_name)
   end
 
   def teardown
     if File.exists?(@encrypt_key_path_backup)
       FileUtils.mv @encrypt_key_path_backup, @encrypt_key_path
     end
+    AWS.s3.buckets[@bucket_name].objects.delete_all
   end
 
   def test_encrypt_key_path
