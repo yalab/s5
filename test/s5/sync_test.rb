@@ -7,6 +7,7 @@ class S5::SyncTest < MiniTest::Test
     if File.exists?(@encrypt_key_path)
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
+    @sync ||= S5::Sync.new
   end
 
   def teardown
@@ -19,23 +20,23 @@ class S5::SyncTest < MiniTest::Test
     assert_equal ENV['HOME'] + '/.s5.key', S5::Sync.encrypt_key_path
   end
 
-  module SyncRunTest
-    def test_sync_run
-      s3_object = @sync.run
+  module SyncPutTest
+    def test_sync_put
+      s3_object = @sync.put
       assert_equal @plain, s3_object.read
     end
 
-    def test_sync_run_with_encrypt
+    def test_sync_put_with_encrypt
       @sync.encrypt!
       assert File.exists?(S5::Sync.encrypt_key_path)
-      s3_object = @sync.run
+      s3_object = @sync.put
       refute_equal @plain, s3_object.read
       assert_equal @plain, s3_object.read(encryption_key: File.binread(@encrypt_key_path))
     end
   end
 
   class SinglePathTest < self
-    include SyncRunTest
+    include SyncPutTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
@@ -44,16 +45,15 @@ class S5::SyncTest < MiniTest::Test
       File.open(@path, 'w') do |f|
         f.write @plain
       end
-      @sync = S5::Sync.new(@path)
     end
 
     def test_default_bucket_name
-      assert_match '-s5sync', @sync.bucket
+      assert_match '-s5sync', @sync.bucket_name
     end
   end
 
   class RelativePathTest < self
-    include SyncRunTest
+    include SyncPutTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
@@ -64,11 +64,10 @@ class S5::SyncTest < MiniTest::Test
       File.open(@path, 'w') do |f|
         f.write @plain
       end
-      @sync = S5::Sync.new(@relative, basedir)
     end
 
     def test_object_path
-      s3_object = @sync.run
+      s3_object = @sync.put
       assert_equal @relative, s3_object.key
     end
   end
