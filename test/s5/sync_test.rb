@@ -7,7 +7,7 @@ class S5::SyncTest < MiniTest::Test
     if File.exists?(@encrypt_key_path)
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
-    @sync ||= S5::Sync.new
+    @sync ||= S5::Sync.new(bucket_name: "#{ENV['USER']}-s5-test")
   end
 
   def teardown
@@ -48,7 +48,7 @@ class S5::SyncTest < MiniTest::Test
     end
 
     def test_default_bucket_name
-      assert_match '-s5sync', @sync.bucket_name
+      assert_match '-s5sync', S5::Sync.new.bucket_name
     end
   end
 
