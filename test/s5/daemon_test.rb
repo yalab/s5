@@ -17,6 +17,15 @@ class S5::DaemonTest < MiniTest::Test
         }
       }
     end
+
+    def delete(*args)
+      proc = super
+      ->(base, relative){
+        proc.call(base, relative).tap{
+          Fiber.yield
+        }
+      }
+    end
   end
 
   def setup
@@ -32,7 +41,7 @@ class S5::DaemonTest < MiniTest::Test
     end
   end
 
-  def test_touch_new_file
+  def test_touch_new_file_and_delete
     @daemon.observe
     fork do
       sleep 0.1
@@ -40,5 +49,13 @@ class S5::DaemonTest < MiniTest::Test
     end
     @daemon.fiber.resume
     assert true, AWS.s3.buckets[@bucket_name].objects[File.basename(@path)].exists?
+    fork do
+      sleep 0.1
+      FileUtils.rm_rf(@path)
+    end
+    @daemon.fiber.resume
+    assert_raises AWS::S3::Errors::NoSuchKey do
+      AWS.s3.buckets[@bucket_name].objects[File.basename(@path)].read
+    end
   end
 end
