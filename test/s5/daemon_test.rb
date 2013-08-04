@@ -9,22 +9,21 @@ class S5::DaemonTest < MiniTest::Test
       end
     end
 
-    def create_or_update(*args)
-      proc = super
-      ->(base, relative){
-        proc.call(base, relative).tap{
-          Fiber.yield
-        }
-      }
+    %w(create_or_update delete).each do |name|
+      module_eval <<-METHOD, __FILE__, __LINE__
+        def #{name}(*args)
+          proc = super
+          ->(base, relative){
+            proc.call(base, relative).tap{
+              Fiber.yield
+            }
+          }
+        end
+      METHOD
     end
 
-    def delete(*args)
-      proc = super
-      ->(base, relative){
-        proc.call(base, relative).tap{
-          Fiber.yield
-        }
-      }
+    def resume
+      @fiber.resume
     end
   end
 
@@ -43,19 +42,27 @@ class S5::DaemonTest < MiniTest::Test
 
   def test_touch_new_file_and_delete
     @daemon.observe
-    fork do
-      sleep 0.1
-      FileUtils.touch @path
-    end
-    @daemon.fiber.resume
-    assert true, AWS.s3.buckets[@bucket_name].objects[File.basename(@path)].exists?
-    fork do
-      sleep 0.1
-      FileUtils.rm_rf(@path)
-    end
-    @daemon.fiber.resume
+    user_context{ FileUtils.touch @path }
+    @daemon.resume
+    key = File.basename(@path)
+    assert true, s3_object(@bucket_name, key).exists?
+
+    user_context{ FileUtils.rm_rf(@path) }
+    @daemon.resume
     assert_raises AWS::S3::Errors::NoSuchKey do
-      AWS.s3.buckets[@bucket_name].objects[File.basename(@path)].read
+      s3_object(@bucket_name, key).read
     end
+  end
+
+  private
+  def user_context
+    fork do
+      sleep 0.1
+      yield
+    end
+  end
+
+  def s3_object(bucket_name, key)
+    AWS.s3.buckets[bucket_name].objects[key]
   end
 end
