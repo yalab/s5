@@ -1,1 +1,3 @@
 #!/usr/bin/env ruby
+require "s5/cli"
+S5::Cli.start

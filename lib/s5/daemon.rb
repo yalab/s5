@@ -1,6 +1,7 @@
 require 'fssm'
 
 class S5::Daemon
+  attr_reader :pid
   def initialize(*paths, bucket_name: nil)
     @syncs = paths.map{|path|
       sync = S5::Sync.new(path, bucket_name: bucket_name)
