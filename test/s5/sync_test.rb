@@ -26,8 +26,7 @@ class S5::SyncTest < MiniTest::Test
     def test_sync_put_get
       s3_object = @sync.put(@path)
       assert_equal @plain, s3_object.read
-      File.unlink(@path)
-      Dir.unlink(File.dirname(@path))
+      FileUtils.rm_rf(File.dirname(@path))
       @sync.get(@path)
       assert_equal @plain, File.read(@path)
     end
@@ -38,8 +37,7 @@ class S5::SyncTest < MiniTest::Test
       s3_object = @sync.put(@path)
       refute_equal @plain, s3_object.read
       assert_equal @plain, s3_object.read(encryption_key: File.binread(@encrypt_key_path))
-      File.unlink(@path)
-      Dir.unlink(File.dirname(@path))
+      FileUtils.rm_rf(File.dirname(@path))
       @sync.get(@path)
       assert_equal @plain, File.binread(@path)
     end
@@ -80,6 +78,9 @@ class S5::SyncTest < MiniTest::Test
     def test_object_path
       s3_object = @sync.put(@key)
       assert_equal @key, s3_object.key
+      FileUtils.rm_rf(File.dirname(@path))
+      @sync.get(@key)
+      assert_equal @plain, File.binread(@path)
     end
   end
 end

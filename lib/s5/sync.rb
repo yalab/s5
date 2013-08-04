@@ -7,11 +7,7 @@ class S5::Sync
 
   def initialize(basedir=nil, bucket_name: nil)
     @basedir = basedir
-    @bucket_name = if bucket_name
-                     bucket_name
-                   else
-                     AWS.iam.users.first.name + '-s5sync'
-                   end
+    @bucket_name = bucket_name || AWS.iam.users.first.name + '-s5sync'
     @options = {}
   end
 
@@ -27,11 +23,7 @@ class S5::Sync
   end
 
   def get(key)
-    (path, s3_key) = if Pathname.new(key).absolute?
-                       [key, File.basename(key)]
-                     else
-                       [File.join(@basedir, key), key]
-                     end
+    (path, s3_key) = generate_path_and_key(key)
     FileUtils.mkdir_p(File.dirname(path))
     File.open(path, 'wb') do |f|
       f.write s3_object(s3_key).read(@options)
@@ -39,16 +31,12 @@ class S5::Sync
   end
 
   def put(key)
-    (path, s3_key) = if Pathname.new(key).absolute?
-                       [key, File.basename(key)]
-                     else
-                       [File.join(@basedir, key), key]
-                     end
+    (path, s3_key) = generate_path_and_key(key)
     s3_object(s3_key).write(File.binread(path), @options)
   end
 
   private
-  def bucket
+  def s3_bucket
     s3 = AWS.s3
     _bucket = s3.buckets[@bucket_name]
     if _bucket.exists?
@@ -59,6 +47,14 @@ class S5::Sync
   end
 
   def s3_object(key)
-    bucket.objects[key]
+    s3_bucket.objects[key]
+  end
+
+  def generate_path_and_key(path)
+    if Pathname.new(path).absolute?
+      [path, File.basename(path)]
+    else
+      [File.join(@basedir, path), path]
+    end
   end
 end
