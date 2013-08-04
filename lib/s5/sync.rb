@@ -11,6 +11,11 @@ class S5::Sync
     @options = {}
   end
 
+  def delete(key)
+    (path, s3_key) = generate_path_and_key(key)
+    s3_object(s3_key).tap{|o| o.delete }
+  end
+
   def encrypt!
     key_path = self.class.encrypt_key_path
     unless File.exists?(key_path)

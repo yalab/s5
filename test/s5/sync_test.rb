@@ -82,5 +82,13 @@ class S5::SyncTest < MiniTest::Test
       @sync.get(@key)
       assert_equal @plain, File.binread(@path)
     end
+
+    def test_delete
+      @sync.put(@key)
+      s3_object = @sync.delete(@key)
+      assert_raises AWS::S3::Errors::NoSuchKey do
+        s3_object.read
+      end
+    end
   end
 end
