@@ -5,7 +5,8 @@ class S5::Sync
     ENV['HOME'] + '/.s5.key'
   end
 
-  def initialize(bucket_name: nil)
+  def initialize(basedir=nil, bucket_name: nil)
+    @basedir = basedir
     @bucket_name = if bucket_name
                      bucket_name
                    else
@@ -25,13 +26,13 @@ class S5::Sync
     @options[:encryption_key] = File.binread(key_path)
   end
 
-  def put(relative, basedir=nil)
-    (path, key) = if basedir
-                    [basedir + '/'  + relative, relative]
-                  else
-                    [relative, File.basename(relative)]
-                  end
-    s3_object(key).write(File.binread(path), @options)
+  def put(key)
+    (path, s3_key) = if Pathname.new(key).absolute?
+                       [key, File.basename(key)]
+                     else
+                       [File.join(@basedir, key), key]
+                     end
+    s3_object(s3_key).write(File.binread(path), @options)
   end
 
   private
