@@ -90,5 +90,11 @@ class S5::SyncTest < S5::Test
         s3_object.read
       end
     end
+
+    def test_remote_list
+      object = @sync.put(@key)
+      expect = {object.key => object.last_modified}
+      assert_equal expect, @sync.remote_list
+    end
   end
 end

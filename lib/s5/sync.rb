@@ -40,6 +40,12 @@ class S5::Sync
     s3_object(s3_key).write(File.binread(path), @options)
   end
 
+  def remote_list
+    Hash[s3_objects.to_a.map do |object|
+      [object.key, object.last_modified]
+    end]
+  end
+
   private
   def s3_bucket
     s3 = AWS.s3
@@ -52,7 +58,11 @@ class S5::Sync
   end
 
   def s3_object(key)
-    s3_bucket.objects[key]
+    s3_objects[key]
+  end
+
+  def s3_objects
+    s3_bucket.objects
   end
 
   def generate_path_and_key(path)
