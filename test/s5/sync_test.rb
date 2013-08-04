@@ -22,10 +22,14 @@ class S5::SyncTest < MiniTest::Test
     assert_equal ENV['HOME'] + '/.s5.key', S5::Sync.encrypt_key_path
   end
 
-  module SyncPutTest
-    def test_sync_put
+  module SyncPutGetTest
+    def test_sync_put_get
       s3_object = @sync.put(@path)
       assert_equal @plain, s3_object.read
+      File.unlink(@path)
+      Dir.unlink(File.dirname(@path))
+      @sync.get(@path)
+      assert_equal @plain, File.read(@path)
     end
 
     def test_sync_put_with_encrypt
@@ -34,11 +38,15 @@ class S5::SyncTest < MiniTest::Test
       s3_object = @sync.put(@path)
       refute_equal @plain, s3_object.read
       assert_equal @plain, s3_object.read(encryption_key: File.binread(@encrypt_key_path))
+      File.unlink(@path)
+      Dir.unlink(File.dirname(@path))
+      @sync.get(@path)
+      assert_equal @plain, File.binread(@path)
     end
   end
 
   class SinglePathTest < self
-    include SyncPutTest
+    include SyncPutGetTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
@@ -55,7 +63,7 @@ class S5::SyncTest < MiniTest::Test
   end
 
   class RelativePathTest < self
-    include SyncPutTest
+    include SyncPutGetTest
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'

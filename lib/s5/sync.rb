@@ -26,6 +26,18 @@ class S5::Sync
     @options[:encryption_key] = File.binread(key_path)
   end
 
+  def get(key)
+    (path, s3_key) = if Pathname.new(key).absolute?
+                       [key, File.basename(key)]
+                     else
+                       [File.join(@basedir, key), key]
+                     end
+    FileUtils.mkdir_p(File.dirname(path))
+    File.open(path, 'wb') do |f|
+      f.write s3_object(s3_key).read(@options)
+    end
+  end
+
   def put(key)
     (path, s3_key) = if Pathname.new(key).absolute?
                        [key, File.basename(key)]
