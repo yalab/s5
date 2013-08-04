@@ -96,5 +96,19 @@ class S5::SyncTest < S5::Test
       expect = {object.key => object.last_modified}
       assert_equal expect, @sync.remote_list
     end
+
+    def test_local_list
+      FileUtils.rm_rf(fixtures_path.to_s)
+      FileUtils.mkdir_p(fixtures_path.to_s)
+      expects = {
+        'a.txt' => Time.now,
+        'b.txt' => Time.now - 20
+      }
+      expects.each do |name, time|
+        FileUtils.touch fixtures_path.join(name).to_s, mtime: time
+      end
+      sync = S5::Sync.new(fixtures_path.to_s)
+      assert_equal expects, sync.local_list
+    end
   end
 end

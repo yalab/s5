@@ -35,6 +35,14 @@ class S5::Sync
     end
   end
 
+  def local_list
+    raise unless @basedir
+    offset = @basedir.length + 1
+    Hash[Dir.glob(@basedir + '/**/*').to_a.map{|f|
+           [f[offset..-1], File.mtime(f)]
+         }]
+  end
+
   def put(key)
     (path, s3_key) = generate_path_and_key(key)
     s3_object(s3_key).write(File.binread(path), @options)
