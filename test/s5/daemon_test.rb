@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class S5::DaemonTest < MiniTest::Test
+class S5::DaemonTest < S5::Test
   class DaemonFiber < S5::Daemon
     attr_accessor :fiber
     def observe
@@ -28,10 +28,10 @@ class S5::DaemonTest < MiniTest::Test
   end
 
   def setup
-    @fixture_dir = File.expand_path('../../fixtures', __FILE__)
+    @fixture_dir = fixtures_path
     @bucket_name = "#{ENV["USER"]}-s5-daemon-test"
     @daemon = DaemonFiber.new(@fixture_dir, bucket_name: @bucket_name)
-    @path = @fixture_dir + '/' + Time.now.to_f.to_s
+    @path = @fixture_dir.join(Time.now.to_f.to_s)
   end
 
   def teardown

@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class S5::SyncTest < MiniTest::Test
+class S5::SyncTest < S5::Test
   def setup
     @encrypt_key_path = S5::Sync.encrypt_key_path
     @encrypt_key_path_backup = @encrypt_key_path + '.s5_test'
@@ -16,6 +16,7 @@ class S5::SyncTest < MiniTest::Test
       FileUtils.mv @encrypt_key_path_backup, @encrypt_key_path
     end
     AWS.s3.buckets[@bucket_name].objects.delete_all
+    FileUtils.rm_rf fixtures_path.to_s
   end
 
   def test_encrypt_key_path
@@ -48,8 +49,7 @@ class S5::SyncTest < MiniTest::Test
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
-      @path = File.expand_path('../../fixtures/test.txt', __FILE__)
-      FileUtils.mkdir_p File.dirname(@path)
+      @path = fixtures_path.join('test.txt')
       File.open(@path, 'w') do |f|
         f.write @plain
       end
