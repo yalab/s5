@@ -40,6 +40,12 @@ class S5::DaemonTest < S5::Test
     end
   end
 
+  def test_sync_when_initialize
+    sync = S5::Sync.new(local_path: @fixture_dir,
+                        remote_bucket: @bucket_name)
+    assert_equal sync.remote_list.keys.sort, sync.local_list.keys.sort
+  end
+
   def test_touch_new_file_and_delete
     @daemon.observe
     user_context{ FileUtils.touch @path }

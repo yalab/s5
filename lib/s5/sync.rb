@@ -6,7 +6,7 @@ class S5::Sync
   end
 
   def initialize(local_path: nil, remote_bucket: nil)
-    @local_path = local_path
+    @local_path = local_path.to_s
     @remote_bucket = remote_bucket || AWS.iam.users.first.name + '-s5sync'
     @options = {}
   end
@@ -37,10 +37,11 @@ class S5::Sync
 
   def local_list
     raise unless @local_path
-    offset = @local_path.length + 1
+    offset = @local_path.to_s.length + 1
     Hash[Dir.glob(@local_path + '/**/*').to_a.map{|f|
+           next unless File.file?(f)
            [f[offset..-1], File.mtime(f)]
-         }]
+         }.compact]
   end
 
   def put(key)
