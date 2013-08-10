@@ -8,20 +8,22 @@ class S5::SyncTest < S5::Test
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
     @remote_bucket = "#{ENV['USER']}-s5-test"
-    @sync ||= S5::Sync.new(remote_bucket: @remote_bucket)
+    @sync = S5::Sync.new(remote_bucket: @remote_bucket)
   end
 
   def teardown
     if File.exists?(@encrypt_key_path_backup)
       FileUtils.mv @encrypt_key_path_backup, @encrypt_key_path
     end
-    bucket = AWS.s3.buckets[@remote_bucket]
-    bucket.objects.delete_all if bucket.exists?
+    bucket = @sync.send(:s3_bucket)
+    bucket.delete! if bucket.exists? && bucket.versioned?
     FileUtils.rm_rf fixtures_path.to_s
   end
 
-  def test_encrypt_key_path
-    assert_equal ENV['HOME'] + '/.s5.key', S5::Sync.encrypt_key_path
+  class DefaultValues < self
+    def test_encrypt_key_path
+      assert_equal ENV['HOME'] + '/.s5.key', S5::Sync.encrypt_key_path
+    end
   end
 
   module SyncPutGetTest
