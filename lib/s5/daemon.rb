@@ -6,7 +6,6 @@ class S5::Daemon
     @syncs = paths.map{|path|
       sync = S5::Sync.new(local_path: path, remote_bucket: bucket_name)
       sync.encrypt!
-      sync.sync!
       [path, sync]
     }
   end
@@ -23,6 +22,7 @@ class S5::Daemon
 
   def observe
     observers = @syncs.map!{|path, sync|
+      sync.sync!
       [path, create_or_update(sync), delete(sync)]
     }
     FSSM.monitor do
