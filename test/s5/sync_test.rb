@@ -8,7 +8,7 @@ class S5::SyncTest < S5::Test
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
     @remote_bucket = "#{ENV['USER']}-s5-test"
-    @sync = S5::Sync.new(remote_bucket: @remote_bucket)
+    @sync = S5::Sync.new(local_path: fixtures_path, remote_bucket: @remote_bucket)
   end
 
   def teardown
@@ -59,7 +59,7 @@ class S5::SyncTest < S5::Test
     end
 
     def test_default_remote_bucket
-      assert_match '-s5sync', S5::Sync.new.remote_bucket
+      assert_match '-s5sync', S5::Sync.new(local_path: fixtures_path).remote_bucket
     end
   end
 

@@ -6,6 +6,7 @@ class S5::Sync
   end
 
   def initialize(local_path: nil, remote_bucket: nil)
+    raise "You must set local_path argument." unless local_path
     @local_path = local_path.to_s
     @remote_bucket = remote_bucket || AWS.iam.users.first.name + '-s5sync'
     @options = {}
