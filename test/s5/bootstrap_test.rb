@@ -37,6 +37,7 @@ class S5::BootstrapTest < S5::Test
   end
 
   def test_local_list
+    FileUtils.mkdir_p(@local_dir + '/dir')
     expect = {@local_file_name => @mtime}
     assert_equal expect, @sync.local_list
   end
