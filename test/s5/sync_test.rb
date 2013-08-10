@@ -7,15 +7,16 @@ class S5::SyncTest < S5::Test
     if File.exists?(@encrypt_key_path)
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
-    @bucket_name = "#{ENV['USER']}-s5-test"
-    @sync ||= S5::Sync.new(bucket_name: @bucket_name)
+    @remote_bucket = "#{ENV['USER']}-s5-test"
+    @sync ||= S5::Sync.new(remote_bucket: @remote_bucket)
   end
 
   def teardown
     if File.exists?(@encrypt_key_path_backup)
       FileUtils.mv @encrypt_key_path_backup, @encrypt_key_path
     end
-    AWS.s3.buckets[@bucket_name].objects.delete_all
+    bucket = AWS.s3.buckets[@remote_bucket]
+    bucket.objects.delete_all if bucket.exists?
     FileUtils.rm_rf fixtures_path.to_s
   end
 
@@ -55,8 +56,8 @@ class S5::SyncTest < S5::Test
       end
     end
 
-    def test_default_bucket_name
-      assert_match '-s5sync', S5::Sync.new.bucket_name
+    def test_default_remote_bucket
+      assert_match '-s5sync', S5::Sync.new.remote_bucket
     end
   end
 
@@ -67,7 +68,7 @@ class S5::SyncTest < S5::Test
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
       @key = 'fixtures/test.txt'
       basedir = File.expand_path('../../', __FILE__)
-      @sync = S5::Sync.new(basedir, bucket_name: @bucket_name)
+      @sync = S5::Sync.new(local_path: basedir, remote_bucket: @remote_bucket)
       @path = basedir + '/' + @key
       FileUtils.mkdir_p File.dirname(@path)
       File.open(@path, 'w') do |f|

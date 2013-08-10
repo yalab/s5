@@ -2,13 +2,13 @@ require 'test_helper'
 
 class S5::BootstrapTest < S5::Test
   def setup
-    bucket_name = "#{ENV['USER']}-s5-test"
+    bucket_name = "#{ENV['USER']}-s5-test-bootstrap"
     s3 = AWS.s3
-    @bucket = s3.buckets.create(bucket_name)
+    @bucket = s3.buckets[bucket_name].exists? ? s3.buckets[bucket_name] : s3.buckets.create(bucket_name)
     @local_dir = File.expand_path('../../bootstrap_test', __FILE__)
     setup_local
     setup_remote
-    @sync = S5::Sync.new(@local_dir, bucket_name: bucket_name)
+    @sync = S5::Sync.new(local_path: @local_dir, remote_bucket: bucket_name)
   end
 
   def teardown

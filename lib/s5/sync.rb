@@ -1,13 +1,13 @@
 class S5::Sync
-  attr_reader :bucket_name
+  attr_reader :remote_bucket
 
   def self.encrypt_key_path
     ENV['HOME'] + '/.s5.key'
   end
 
-  def initialize(basedir=nil, bucket_name: nil)
-    @basedir = basedir
-    @bucket_name = bucket_name || AWS.iam.users.first.name + '-s5sync'
+  def initialize(local_path: nil, remote_bucket: nil)
+    @local_path = local_path
+    @remote_bucket = remote_bucket || AWS.iam.users.first.name + '-s5sync'
     @options = {}
   end
 
@@ -36,9 +36,9 @@ class S5::Sync
   end
 
   def local_list
-    raise unless @basedir
-    offset = @basedir.length + 1
-    Hash[Dir.glob(@basedir + '/**/*').to_a.map{|f|
+    raise unless @local_path
+    offset = @local_path.length + 1
+    Hash[Dir.glob(@local_path + '/**/*').to_a.map{|f|
            [f[offset..-1], File.mtime(f)]
          }]
   end
@@ -57,11 +57,11 @@ class S5::Sync
   private
   def s3_bucket
     s3 = AWS.s3
-    _bucket = s3.buckets[@bucket_name]
+    _bucket = s3.buckets[@remote_bucket]
     if _bucket.exists?
       _bucket
     else
-      s3.buckets.create(@bucket_name)
+      s3.buckets.create(@remote_bucket)
     end
   end
 
@@ -77,7 +77,7 @@ class S5::Sync
     if Pathname.new(path).absolute?
       [path, File.basename(path)]
     else
-      [File.join(@basedir, path), path]
+      [File.join(@local_path, path), path]
     end
   end
 end
