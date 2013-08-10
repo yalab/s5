@@ -51,7 +51,26 @@ class S5::Sync
   def remote_list
     Hash[s3_objects.to_a.map do |object|
       [object.key, object.last_modified]
-    end]
+    end.sort_by{|o| o.first }]
+  end
+
+  def sync!
+    local_list = self.local_list
+    remote_list = self.remote_list
+    need_put = local_list.select do |name, mtime|
+      if remote_list[name] && mtime <= remote_list[name]
+        remote_list.delete(name)
+        false
+      else
+        true
+      end
+    end
+    need_put.each do |name, mtime|
+      self.put name
+    end
+    remote_list.each do |key, last_modified|
+      self.get key
+    end
   end
 
   private

@@ -4,7 +4,7 @@ class S5::BootstrapTest < S5::Test
   def setup
     bucket_name = "#{ENV['USER']}-s5-test-bootstrap"
     s3 = AWS.s3
-    @bucket = s3.buckets[bucket_name].exists? ? s3.buckets[bucket_name] : s3.buckets.create(bucket_name)
+    @bucket = s3.buckets.create(bucket_name)
     @local_dir = File.expand_path('../../bootstrap_test', __FILE__)
     setup_local
     setup_remote
@@ -12,8 +12,7 @@ class S5::BootstrapTest < S5::Test
   end
 
   def teardown
-    @bucket.clear!
-    @bucket.delete
+    @bucket.delete!
     FileUtils.rm_rf(@local_dir)
   end
 
@@ -40,5 +39,10 @@ class S5::BootstrapTest < S5::Test
   def test_local_list
     expect = {@local_file_name => @mtime}
     assert_equal expect, @sync.local_list
+  end
+
+  def test_sync!
+    @sync.sync!
+    assert_equal @sync.remote_list.keys.sort, @sync.local_list.keys.sort
   end
 end
