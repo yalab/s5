@@ -45,12 +45,12 @@ class S5::DaemonTest < S5::Test
     user_context{ FileUtils.touch @path }
     @daemon.resume
     key = File.basename(@path)
-    assert true, s3_object(@bucket_name, key).exists?
+    assert true, s3_object(key).exists?
 
     user_context{ FileUtils.rm_rf(@path) }
     @daemon.resume
     assert_raises AWS::S3::Errors::NoSuchKey do
-      s3_object(@bucket_name, key).read
+      s3_object(key).read
     end
   end
 
@@ -62,7 +62,11 @@ class S5::DaemonTest < S5::Test
     end
   end
 
-  def s3_object(bucket_name, key)
-    AWS.s3.buckets[bucket_name].objects[key]
+  def s3_object(key)
+    bucket.objects[key]
+  end
+
+  def bucket
+    AWS.s3.buckets[@bucket_name]
   end
 end
