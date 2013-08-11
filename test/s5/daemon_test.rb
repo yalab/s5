@@ -32,6 +32,7 @@ class S5::DaemonTest < S5::Test
     @bucket_name = "#{ENV["USER"]}-s5-daemon-test"
     @daemon = DaemonFiber.new(@fixtures_path, bucket_name: @bucket_name)
     @path = @fixtures_path.join(Time.now.to_f.to_s)
+    FileUtils.rm_rf @path
   end
 
   def teardown
@@ -62,7 +63,7 @@ class S5::DaemonTest < S5::Test
   private
   def user_context
     fork do
-      sleep 0.1
+      sleep 0.5
       yield
     end
   end
