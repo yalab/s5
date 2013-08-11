@@ -18,7 +18,15 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+For exapme. ~/project directory sync to 'yalab-project' S3 bucket.
+
+```bash
+$ s5 observe ~/project --backet="YOUR_BUCKET_NAME"
+```
+
+Files under ~/project directory will client side encryption and put to S3 bucekt. 
+
+You *must backup* the encryption key. It is to create on **~/.s5.key**.
 
 ## Contributing
 

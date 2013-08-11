@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["rudeboyjet@gmail.com"]
   spec.description   = %q{Secure Sync to Amazon S3. }
   spec.summary       = %q{This gem provides Amazon S3 sync with client side encryption.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/yalab/s5"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
