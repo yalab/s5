@@ -28,20 +28,19 @@ class S5::DaemonTest < S5::Test
   end
 
   def setup
-    @fixture_dir = fixtures_path
+    super
     @bucket_name = "#{ENV["USER"]}-s5-daemon-test"
-    @daemon = DaemonFiber.new(@fixture_dir, bucket_name: @bucket_name)
-    @path = @fixture_dir.join(Time.now.to_f.to_s)
+    @daemon = DaemonFiber.new(@fixtures_path, bucket_name: @bucket_name)
+    @path = @fixtures_path.join(Time.now.to_f.to_s)
   end
 
   def teardown
-    if File.exists?(@path)
-      File.unlink(@path)
-    end
+    super
+    bucket.delete! if bucket.exists? && bucket.versioned?
   end
 
   def test_sync_when_initialize
-    sync = S5::Sync.new(local_path: @fixture_dir,
+    sync = S5::Sync.new(local_path: @fixtures_path,
                         remote_bucket: @bucket_name)
     assert_equal sync.remote_list.keys.sort, sync.local_list.keys.sort
   end

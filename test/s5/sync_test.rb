@@ -2,22 +2,23 @@ require 'test_helper'
 
 class S5::SyncTest < S5::Test
   def setup
+    super
     @encrypt_key_path = S5::Sync.encrypt_key_path
     @encrypt_key_path_backup = @encrypt_key_path + '.s5_test'
     if File.exists?(@encrypt_key_path)
       FileUtils.mv @encrypt_key_path, @encrypt_key_path_backup
     end
     @remote_bucket = "#{ENV['USER']}-s5-test"
-    @sync = S5::Sync.new(local_path: fixtures_path, remote_bucket: @remote_bucket)
+    @sync = S5::Sync.new(local_path: @fixtures_path, remote_bucket: @remote_bucket)
   end
 
   def teardown
+    super
     if File.exists?(@encrypt_key_path_backup)
       FileUtils.mv @encrypt_key_path_backup, @encrypt_key_path
     end
     bucket = @sync.send(:s3_bucket)
     bucket.delete! if bucket.exists? && bucket.versioned?
-    FileUtils.rm_rf fixtures_path.to_s
   end
 
   class DefaultValues < self
@@ -52,14 +53,14 @@ class S5::SyncTest < S5::Test
     def setup
       super
       @plain = Digest::SHA2.hexdigest(Time.now.to_f.to_s) + 'test'
-      @path = fixtures_path.join('test.txt')
+      @path = @fixtures_path.join('test.txt')
       File.open(@path, 'w') do |f|
         f.write @plain
       end
     end
 
     def test_default_remote_bucket
-      assert_match '-s5sync', S5::Sync.new(local_path: fixtures_path).remote_bucket
+      assert_match '-s5sync', S5::Sync.new(local_path: @fixtures_path).remote_bucket
     end
   end
 
